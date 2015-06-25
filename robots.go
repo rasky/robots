@@ -38,6 +38,7 @@ func download(uri string) {
 	f, err := os.Create(parsed.Host)
 	if err != nil {
 		log.Println(err)
+		return
 	}
 	defer f.Close()
 
