@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
@@ -51,11 +53,18 @@ func download(uri string) {
 }
 
 func GetRobots() {
+	sigch := make(chan os.Signal)
+	signal.Notify(sigch, syscall.SIGHUP)
+
 	for {
 		for _, s := range SITES {
 			go download(s + "/robots.txt")
 		}
-		time.Sleep(10 * time.Second)
+
+		select {
+		case <-sigch:
+		case <-time.After(10 * time.Second):
+		}
 	}
 }
 
