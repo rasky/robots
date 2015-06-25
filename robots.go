@@ -41,7 +41,11 @@ func download(uri string) {
 	}
 	defer f.Close()
 
-	io.Copy(f, resp.Body)
+	_, err = io.Copy(f, resp.Body)
+	if err != nil {
+		log.Println("error while fetching:", err)
+		return
+	}
 	log.Println("downloaded:", uri)
 }
 
