@@ -1,4 +1,4 @@
-package main
+package fetcher
 
 import (
 	"io"
@@ -10,13 +10,6 @@ import (
 	"syscall"
 	"time"
 )
-
-var SITES = []string{
-	"https://www.google.com",
-	"https://www.develer.com",
-	"https://www.yahoo.com",
-	"https://www.facebook.com",
-}
 
 func download(uri string) {
 	resp, err := http.Get(uri)
@@ -53,7 +46,7 @@ func download(uri string) {
 }
 
 func GetRobots() {
-	sigch := make(chan os.Signal)
+	sigch := make(chan os.Signal, 1)
 	signal.Notify(sigch, syscall.SIGHUP)
 
 	for {
@@ -66,9 +59,4 @@ func GetRobots() {
 		case <-time.After(10 * time.Second):
 		}
 	}
-}
-
-func main() {
-	go GetRobots()
-	select {}
 }
