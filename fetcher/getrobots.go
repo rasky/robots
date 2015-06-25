@@ -1,6 +1,7 @@
 package fetcher
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -11,38 +12,34 @@ import (
 	"time"
 )
 
-func download(uri string) {
+func download(uri string) error {
 	resp, err := http.Get(uri)
 	if err != nil {
-		log.Println("error fetching file", uri, err)
-		return
+		return fmt.Errorf("error fetching file: %v %v", uri, err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 400 {
-		log.Println("http error:", uri, resp.Status)
-		return
+		return fmt.Errorf("http error: %v %v", uri, resp.Status)
 	}
 
 	parsed, err := url.Parse(uri)
 	if err != nil {
-		log.Println("invalid URL", err)
-		return
+		return fmt.Errorf("invalid URL %v", err)
 	}
 
 	f, err := os.Create(parsed.Host)
 	if err != nil {
-		log.Println(err)
-		return
+		return fmt.Errorf("%v", err)
 	}
 	defer f.Close()
 
 	_, err = io.Copy(f, resp.Body)
 	if err != nil {
-		log.Println("error while fetching:", err)
-		return
+		return fmt.Errorf("error while fetching: %v", err)
 	}
 	log.Println("downloaded:", uri)
+	return nil
 }
 
 func GetRobots() {
@@ -51,7 +48,12 @@ func GetRobots() {
 
 	for {
 		for _, s := range SITES {
-			go download(s + "/robots.txt")
+			go func(s string) {
+				err := download(s + "/robots.txt")
+				if err != nil {
+					log.Println("error downloading:", err)
+				}
+			}(s)
 		}
 
 		select {
